@@ -211,6 +211,29 @@ var mapView = Backbone.View.extend({
             .attr('transform', function() { return "rotate(-"+angle+"," + (width / 2) + "," + (height / 2) + ")" });
 
 
+        //track
+        world.append('path')
+            .attr('class', 'track')
+            .attr('d', trackPath(track))
+
+
+        if ( this.model.marks ) {
+            var marks = _.values(this.model.marks);
+
+            world.selectAll('circle.mark')
+                .data(marks)
+                .enter()
+                    .append('circle')
+                    .attr('class', 'mark')
+                    .attr('r', 3)
+                    .style('fill', '#fff')
+                    .style('stroke-width', '1.5px')
+                    .style('stroke', '#666')
+                    .attr('cx', function(d) { return projection([d[0], d[1]])[0]; })
+                    .attr('cy', function(d) { return projection([d[0], d[1]])[1]; })
+        }
+
+
         //performance underlay
         var perfScale = d3.scale.threshold()
             .domain([50, 90, 100, 110])
@@ -259,15 +282,16 @@ var mapView = Backbone.View.extend({
                 .attr("d", function(d) { return trackPath(d.track) });
 
 
-        //track
-        world.append('path')
-            .attr('class', 'track')
-            .attr('d', trackPath(track))
 
 
         
         this.renderTackLabels(world, view, projection, angle, width, height);
 
+
+        svg.select('.water').on('click', function() {
+            var pos = d3.mouse(this);
+            console.info('map clicked', projection.invert(pos) );
+        });
 
         
         //create boat and put at start of race
@@ -294,6 +318,7 @@ var mapView = Backbone.View.extend({
             var coord = projection([point.lon, point.lat]);
             
             boat.attr('transform', 'translate('+(coord[0])+","+(coord[1]) +")scale(.06)rotate("+point.hdg+",-10,-10)");
+            view.boatPos = [point.lon, point.lat, point.hdg];
 
             //TODO: smooth the TWD
             //TODO: update TWS
@@ -348,15 +373,17 @@ var mapView = Backbone.View.extend({
             .range([0, width - 80])
             .domain(allTimeRange);
 
+        
         var xAxis = d3.svg.axis()
             .scale(x)
             .orient("bottom")
-            .tickSize(20)
+            .tickSize(35)
             .tickValues(_.pluck(this.legs, 'start'))
             .tickFormat(function(d) { return moment(d).format("h:mm"); });
 
 
 
+        
         var classes = function(d) {
             var c = ['board'];
 
@@ -373,27 +400,16 @@ var mapView = Backbone.View.extend({
         }
 
 
-        // function brushed(a,b,c,d) {
-        //     console.info('brushed', a,b,c,d );
-        // }
-
-        var brush = d3.svg.brush()
-            .x(x)
-            .extent([0, 0])
-            .on("brush", brushed);
+        
 
 
         var scrubSvg = d3.select(this.el).append("svg")
             .attr("width", width)
-            .attr("height", 60)
+            .attr("height", 100)
             .attr("class", "scrubber")
         .append("g")
             .attr("transform", "translate(40, 10)");
-
-        scrubSvg.append("g")
-            .attr("class", "g-slider")
-            .call(brush);        
-
+       
         
         scrubSvg.append("g")
             .attr("class", "boards")
@@ -404,52 +420,43 @@ var mapView = Backbone.View.extend({
                 .attr("x", function(d) { return x(d.start); })
                 .attr("width", function(d) { return x(d.end) - x(d.start); })
                 .attr("y", 0)
-                .attr("height", 10)
+                .attr("height", 25)
                 // .attr("fill", function(d) { return d.color; });
 
         var axis = scrubSvg.append("g")
                 .attr("class", "scrub axis")
-                .attr("transform", "translate(0,-10)")
+                .attr("transform", "translate(0,-6)")
                 .call(xAxis);
 
         var boat = scrubSvg.append('path')
-            .attr('d', 'M0,-8 C6,0 5,5 3.5,8 L-3.5,8 C-5,5 -6,0 0,-8')
+            .attr('d', 'M0,-12.8 C9.6,0 8,8 5.6,12.8 L-5.6,12.8 C-8,8 -9.6,0 0,-12.8')
             .attr('class', 'boat')
-            .attr('transform', 'translate(0,5)');
-                
+            .attr('transform', 'translate(0,12)');
 
-        scrubSvg.on('mousemove', function(a,b,c,d) {
-            var pos = d3.mouse(this);
-            var time = x.invert(pos[0]);
-            app.trigger('scrub', new Date(time), pos);
-        });
+        
+        // drag boat to scrub
+        var drag = d3.behavior.drag()
+            .on("drag", function dragmove(d) { app.trigger('scrub', new Date(x.invert(d3.event.x))); });
+
+        boat.call(drag);
+
+
+
+        //clicking on svg scrubs to that position
+        scrubSvg.on('click', function(d) {
+                var pos = d3.mouse(this);
+                var time = x.invert(pos[0]);
+                app.trigger('scrub', new Date(time));
+            });
+
 
         // //listen to app events
         this.listenTo(app, 'scrub', function(time) {
             var boatPos = x(time);
             
-            boat.attr('transform', "translate("+boatPos+",5)rotate(16)");
+            boat.attr('transform', "translate("+boatPos+",12)rotate(16)");
         });
 
-        function brushed() {
-            if (d3.event.sourceEvent) { // not a programmatic event
-                if (d3.event.sourceEvent.target.parentNode === this) { // clicked on the brush
-                    playButton.text("Play");
-                    targetValue = x.invert(d3.mouse(this)[0]);
-                    move();
-                }
-            } else {
-                currentValue = brush.extent()[0];
-                handle.attr("cx", x(currentValue));
-                var i = Math.round(currentValue) + indexOffset;
-                gate.classed("g-course-crossed", function(d) { return currentValue >= d.properties.time; });
-                boat.attr("transform", function(d) { return "translate(" + projection(d.coordinates[i]) + ")"; });
-                track.attr("d", function(d) { return path({type: "LineString", coordinates: d.coordinates.slice(0, i + 1)}); });
-                trail.attr("d", function(d) { return path({type: "LineString", coordinates: d.coordinates.slice(Math.max(0, i - trailLength), i + 1)}); });
-                wind.select(".g-speed").text(function(d) { return windFormat(d[i][3]) + " knots"; });
-                compass.attr("transform", function(d) { return "rotate(" + (180 + d[i][4]) + ")"; });
-            }
-        }
     },
     onSelect: function(range) {
 

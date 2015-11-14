@@ -119,6 +119,7 @@ function init() {
                         return '<option value="'+race.id+'">'+[date.format('YYYY'), race.regatta, 'Race', race.race].join(' ') +'</option>';
                     })
                     .value();
+
         $('#race_nav')
             .html(raceOptions.join())
             .change(function(a,b,c,d) {
@@ -146,6 +147,14 @@ function init() {
 
             var ret = buildOutData( race.data, start.valueOf() );
             
+            //debug wind data
+            var windExtent = d3.extent(race.data, function(d) { return d['tws']; });
+            var windMean = d3.mean(race.data, function(d) { return d['tws']; });
+            var windMedian = d3.median(race.data, function(d) { return d['tws']; });
+            
+            console.info("windSpeed: min, max, median, mean", windExtent, windMedian, windMean);
+            console.info("windDir: ");
+
             _.extend(window.race, ret);
 
             var BOARD_COLORS = {
