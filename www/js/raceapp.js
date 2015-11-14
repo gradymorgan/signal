@@ -190,7 +190,7 @@ function init() {
         console.info(tack); window.tack = tack;
 
         var view = new tackView({tack: tack});
-        view.render();
         view.$el.appendTo(details);
+        view.render();
     });
 }

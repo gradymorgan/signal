@@ -184,11 +184,11 @@ var tackView = Backbone.View.extend({
         track.render();
 
         var graph = new tackGraph(this.tack.data, this.tack, "wind", this);
-        this.$('.tackGraph').append(graph.el);
-        graph.render();
+        this.$('.tackGraphs').append(graph.el);
+        graph.render(); 
 
         graph = new tackGraph(this.tack.data, this.tack, "speed", this);
-        this.$('.tackGraph').append(graph.el);
+        this.$('.tackGraphs').append(graph.el);
         graph.render();
 
     }
