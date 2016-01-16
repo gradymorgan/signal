@@ -222,7 +222,7 @@ var graphView = Backbone.View.extend({
         }
 
         this.listenTo(app, 'scrub', highlight);
-        svg.on('mousemove', function(a,b,c,d) {
+        svg.on('click', function(a,b,c,d) {
             var pos = d3.mouse(this);
             var time = x.invert(pos[0]);
             app.trigger('scrub', new Date(time), pos);

@@ -156,7 +156,7 @@ var mapView = Backbone.View.extend({
                 // .attr('dx', function(d) { return d.tack.board == 'U-P'?-5:5 })
                 .attr('dy', '.35em')
                 .attr('text-anchor', function(d) { return d.tack.board == 'U-P'?'end':null })
-                .text(function(d) { return (d.tack.loss>0?"+":"")+d.tack.loss.toFixed(0); })
+                .text(function(d) { return (d.tack.loss>0?"+":"")+d.tack.loss.toFixed(0)+" ft"; })
                 .on('click', function(d) {
                     app.trigger('select-tack', d.tack, this);
                 })
@@ -290,7 +290,7 @@ var mapView = Backbone.View.extend({
 
         svg.select('.water').on('click', function() {
             var pos = d3.mouse(this);
-            console.info('map clicked', projection.invert(pos) );
+            console.info('map clicked: ', projection.invert(pos), ' boat position: ', view.boatPos, ' time: ', view.boatTime);
         });
 
         
@@ -318,7 +318,9 @@ var mapView = Backbone.View.extend({
             var coord = projection([point.lon, point.lat]);
             
             boat.attr('transform', 'translate('+(coord[0])+","+(coord[1]) +")scale(.06)rotate("+point.hdg+",-10,-10)");
+            
             view.boatPos = [point.lon, point.lat, point.hdg];
+            view.boatTime = time;
 
             //TODO: smooth the TWD
             //TODO: update TWS
@@ -332,7 +334,7 @@ var mapView = Backbone.View.extend({
 
     },
     renderLayerToggles: function() {
-        $('<div class="layers"><a class="button" href="#tack-costs">Tacks</a><a class="button" href="#performance">Performance</a><a class="button" href="#clear">Clear</a></div>').appendTo(this.el);
+        $('<div class="layers">Show: <a class="button" href="#tack-costs">Tacks</a><a class="button" href="#performance">Performance</a><a class="button" href="#clear">Clear</a></div>').appendTo(this.el);
         
         $('.layers .button', this.el).click(function() {
             $('.layer').hide();
@@ -346,7 +348,7 @@ var mapView = Backbone.View.extend({
     renderScrubber: function(width, height) {
         var view = this;
 
-        //set up background color blocks
+        //TODO: generalize set up background color blocks
         var maneuvers = this.model.maneuvers;
         this.legs = [];
 
@@ -379,7 +381,7 @@ var mapView = Backbone.View.extend({
             .orient("bottom")
             .tickSize(35)
             .tickValues(_.pluck(this.legs, 'start'))
-            .tickFormat(function(d) { return moment(d).format("h:mm"); });
+            .tickFormat(function(d,i) { return '+'+moment(d).diff(allTimeRange[0], 'minutes')+(i==view.legs.length-1?' minutes':''); });
 
 
 
@@ -420,8 +422,7 @@ var mapView = Backbone.View.extend({
                 .attr("x", function(d) { return x(d.start); })
                 .attr("width", function(d) { return x(d.end) - x(d.start); })
                 .attr("y", 0)
-                .attr("height", 25)
-                // .attr("fill", function(d) { return d.color; });
+                .attr("height", 25);
 
         var axis = scrubSvg.append("g")
                 .attr("class", "scrub axis")

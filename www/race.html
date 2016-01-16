@@ -4,10 +4,12 @@
         <title>Race Replay</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=1320, initial-scale=.6">
-        
-        <link href="css/race.css" rel="stylesheet" type="text/css">
 
-        <!-- build:js(.) js/lib.js -->
+        <!-- build:css css/race.css -->        
+        <link href="css/race.css" rel="stylesheet" type="text/css">
+        <!-- endbuild -->
+
+        <!-- build:js js/lib.js -->
         <!-- bower:js -->
         <script src="/bower_components/jquery/dist/jquery.js"></script>
         <script src="/bower_components/lodash/lodash.js"></script>
@@ -19,6 +21,7 @@
         <script src="/bower_components/homegrown-sailing/dist/sailing.js"></script>
         <script src="/bower_components/async/lib/async.js"></script>
         <script src="/bower_components/chroma-js/chroma.js"></script>
+        <script src="/bower_components/mathjs/dist/math.min.js"></script>
         <!-- endbower -->
         <!-- endbuild -->
         
@@ -32,17 +35,17 @@
             var app = _.extend({}, Backbone.Events);
         </script>
 
-        <!-- build:js(.) js/signal.js -->
-        <script src="/www/js/data.js"></script>
-        <script src="/www/js/graph.js"></script>
-        <script src="/www/js/map.js"></script>
-        <script src="/www/js/tackMap.js"></script>
-        <script src="/www/js/tackGraph.js"></script>
-        <script src="/www/js/tackView.js"></script>
+        <!-- build:js js/signal.js -->
+        <script src="js/data.js"></script>
+        <script src="js/graph.js"></script>
+        <script src="js/map.js"></script>
+        <script src="js/tackMap.js"></script>
+        <script src="js/tackGraph.js"></script>
+        <script src="js/tackView.js"></script>
         <!-- endbuild -->
 
-        <!-- build:js(.) js/raceapp.js -->
-        <script src="/www/js/raceapp.js"></script>
+        <!-- build:js js/raceapp.js -->
+        <script src="js/raceapp.js"></script>
         <!-- endbuild -->
 
         

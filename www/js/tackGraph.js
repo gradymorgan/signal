@@ -57,7 +57,7 @@ tagName: 'div',
             .orient("top")
             .tickValues( ticks )
             .tickSize(3)
-            .tickFormat(function(d) { return parseInt(moment(view.tack.timing.center).diff(d)/-1000) +' s'; });
+            .tickFormat(function(d) { return parseInt(moment(view.tack.timing.center).diff(d)/-1000) +'s'; });
 
         var yAxis = d3.svg.axis()
             .scale(scale)

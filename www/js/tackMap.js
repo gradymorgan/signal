@@ -123,7 +123,13 @@ var tackMap = Backbone.View.extend({
         
         
         this.renderTWARefs(svg, tack.targetAngle, projection);
-        
+        svg.append('text')
+            .style('text-anchor', 'end')
+            .attr('class', 'twa-ref')
+            .text('optimal course')
+            .attr('x', width - 10)
+            .attr('y', height - 5);
+
         
         //draw track
         world.append('path')
