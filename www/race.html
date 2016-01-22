@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=1320, initial-scale=.6">
 
-        <!-- build:css css/race.css -->        
+        <!-- build:css css/race.css -->
         <link href="css/race.css" rel="stylesheet" type="text/css">
         <!-- endbuild -->
 
@@ -17,14 +17,12 @@
         <script src="/bower_components/d3/d3.js"></script>
         <script src="/bower_components/backbone/backbone.js"></script>
         <script src="/bower_components/handlebars/handlebars.js"></script>
-        <script src="/bower_components/homegrown-polars/dist/polars.js"></script>
-        <script src="/bower_components/homegrown-sailing/dist/sailing.js"></script>
         <script src="/bower_components/async/lib/async.js"></script>
         <script src="/bower_components/chroma-js/chroma.js"></script>
         <script src="/bower_components/mathjs/dist/math.min.js"></script>
         <!-- endbower -->
         <!-- endbuild -->
-        
+
         <script>
             if ( typeof window.console === 'undefined' ) {
                 window.console = {
@@ -36,8 +34,11 @@
         </script>
 
         <!-- build:js js/signal.js -->
+        <script src="/node_modules/homegrown-polars/dist/polars.js"></script>
+        <script src="/node_modules/homegrown-sailing/dist/sailing.js"></script>
         <script src="js/data.js"></script>
         <script src="js/graph.js"></script>
+        <script src="js/polarChart.js"></script>
         <script src="js/map.js"></script>
         <script src="js/tackMap.js"></script>
         <script src="js/tackGraph.js"></script>
@@ -48,7 +49,7 @@
         <script src="js/raceapp.js"></script>
         <!-- endbuild -->
 
-        
+
     </head>
     <body>
         <h2></h2>
@@ -57,7 +58,7 @@
 
 
         </div>
-        
+
 
         <div id="graphs">
             <div id="checkboxes"></div>
@@ -98,6 +99,6 @@
 
         </script>
 
-        
+
     </body>
 </html>

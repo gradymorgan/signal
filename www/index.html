@@ -3,12 +3,12 @@
     <head>
         <title>Project Mayhem Races</title>
         <meta charset="UTF-8">
-        
-        <!-- build:css(.) css/race.css -->        
+
+        <!-- build:css css/race.css -->
         <link href="css/race.css" rel="stylesheet" type="text/css">
         <!-- endbuild -->
 
-        <!-- build:js(.) js/lib.js -->
+        <!-- build:js js/lib.js -->
         <!-- bower:js -->
         <script src="/bower_components/jquery/dist/jquery.js"></script>
         <script src="/bower_components/lodash/lodash.js"></script>
@@ -16,8 +16,6 @@
         <script src="/bower_components/d3/d3.js"></script>
         <script src="/bower_components/backbone/backbone.js"></script>
         <script src="/bower_components/handlebars/handlebars.js"></script>
-        <script src="/bower_components/homegrown-polars/dist/polars.js"></script>
-        <script src="/bower_components/homegrown-sailing/dist/sailing.js"></script>
         <script src="/bower_components/async/lib/async.js"></script>
         <script src="/bower_components/chroma-js/chroma.js"></script>
         <script src="/bower_components/mathjs/dist/math.min.js"></script>
@@ -43,7 +41,7 @@
                                 return {name:regatta,  races:_.sortBy(races, 'race')};
                             })
                             .value();
-          
+
                         return {year: year, regattas: regattas};
                     })
                     .sortBy(function(year) { return year.year*-1; })

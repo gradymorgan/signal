@@ -1,5 +1,5 @@
 var tackGraph = Backbone.View.extend({
-tagName: 'div',
+    tagName: 'div',
     className: "tackGraph",
     initialize: function(data, tack, type, eventlistener) {
         this.data = data;
@@ -9,7 +9,7 @@ tagName: 'div',
     },
     render: function() {
         var view = this;
-        
+
         var margin = {top: 15, right: 30, bottom: 5, left: 40};
 
         // if ( this.showX ) {
@@ -22,7 +22,7 @@ tagName: 'div',
 
         var zoom = false;
 
-        
+
         var x = this.x = d3.scale.linear()
             .range([0, width])
             .domain(d3.extent( view.data, function(d) { return d.t; } ) );
@@ -43,7 +43,7 @@ tagName: 'div',
                 .domain([0, 60]);
         }
 
-        
+
         console.info(x.domain());
 
         //axis
@@ -74,8 +74,8 @@ tagName: 'div',
 
         if ( this.type == 'wind' ) {
             svg.append("g")
-                .attr("class", "x axis") 
-                .call(xAxis);            
+                .attr("class", "x axis")
+                .call(xAxis);
 
             yAxis
                 .tickValues([0, tack.targetAngle, 60])
@@ -87,7 +87,7 @@ tagName: 'div',
                 .tickFormat(function(d) { return d.toFixed(1); });
         }
 
-        svg.append("g")         
+        svg.append("g")
             .attr("class", "grid")
             .call( d3.svg.axis()
                 .scale(x)
@@ -113,7 +113,7 @@ tagName: 'div',
              var line = svg.append('line')
                 .attr('class', 'timing center')
                 .style('stroke', color);
-                
+
             if ( vertical )
                 line.attr({"x1": scale(point), "x2": scale(point), "y1": 0, "y2": height})
             else
@@ -149,9 +149,9 @@ tagName: 'div',
         criticalPoint( this.tack.timing.end, x, 'blue', true);
         criticalPoint( this.tack.timing.recovered, x, '#0a0', true);
 
-        
+
         if ( this.type == "speed" ) {
-            criticalPoint( this.tack.entryVmg, scale, 'blue', false);        
+            criticalPoint( this.tack.entryVmg, scale, 'blue', false);
 
             //lines
             graph('speed', scale, 'rgb(153,153,255)', 0.5);

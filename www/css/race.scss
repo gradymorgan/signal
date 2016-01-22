@@ -15,15 +15,56 @@ $starboard: #5fe44c;
     height: 200px;
 }
 
+.polarChart {
+    height: 300px;
+    width: 300px;
+
+    .frame {
+      fill: none;
+      stroke: #000;
+    }
+
+    .axis text {
+      font: 10px sans-serif;
+    }
+
+    .axis line,
+    .axis circle {
+      fill: none;
+      stroke: #777;
+      stroke-dasharray: 1,4;
+    }
+
+    .axis :last-of-type circle {
+      stroke: #333;
+      stroke-dasharray: none;
+    }
+
+    .line {
+      fill: none;
+      stroke: red;
+      stroke-width: 1.5px;
+    }
+
+    .dot {
+        fill: rgba(0,125,255,.05)
+    }
+}
+
+.polarChart.big {
+    width: 500px;
+    height: 500px;
+}
+
 #wind_graph {
-    height: 100px;   
+    height: 100px;
 }
 #twd_graph {
-    height: 100px;   
+    height: 100px;
 }
 
 #heel_graph {
-    
+
 }
 
 .line {
@@ -91,14 +132,14 @@ rect.water {
 div.layers {
     background-color: $waterColor;
     padding: 5px 10px;
-    
+
     a:link {
         color: #fff;
         text-decoration: none;
-        margin:0 10px; 
-        display: inline-block;   
+        margin:0 10px;
+        display: inline-block;
     }
-    
+
 
 }
 
@@ -118,7 +159,7 @@ $annotationColor: #fff;
         .rose {
             fill: $annotationColor;
             stroke: none;
-        }    
+        }
     }
 }
 

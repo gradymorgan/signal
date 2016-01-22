@@ -1,18 +1,19 @@
-var metrics = [{'metric':'tws', 'group':'wind'},
+var metrics = [{'metric':'gws_20', 'group':'wind'},
                {'metric':'twd', 'group':'twd'},
+               {'metric':'gws', 'group':'wind'},  //metric - avg + 180 to center.  TODO:  how to configure?
                {'metric':'gwd', 'group':'twd'},
                {'metric':'performance', 'group':'percent'},
-               {'metric':'sog', 'group':'speed'}, 
+               {'metric':'sog', 'group':'speed'},
                {'metric':'speed', 'group':'speed'},
-               {'metric':'targetSpeed', 'group':'speed'}, 
+               {'metric':'targetSpeed', 'group':'speed'},
                {'metric':'hdg', 'group':'heading'},
                {'metric':'cog', 'group':'heading'},
                {'metric':'aawa', 'group':'angle', 'transform':function(val) { return Math.abs(val) }},
                {'metric':'atwa', 'group':'angle', 'transform':function(val) { return Math.abs(val) }},
-               {'metric':'targetAngle', 'group':'angle'}, 
+               {'metric':'targetAngle', 'group':'angle'},
                {'metric':'trim', 'group':'heel'},
                {'metric':'heel', 'group':'heel'},
-               {'metric':'targetHeel', 'group':'heel'}, 
+               {'metric':'targetHeel', 'group':'heel'},
                {'metric':'vmg', 'group':'speed'} ];
 
 var configs = {
@@ -30,10 +31,10 @@ function initialize() {
 }
 
 function showCheckboxes() {
-    var keys = ['tws', 'sog', 'speed', 'hdg'];
-    if (localStorage.race_metrics) {
-        keys = JSON.parse(localStorage.race_metrics);
-    }
+    var keys = ['tws',  'sog', 'speed', 'hdg'];
+    // if (localStorage.race_metrics) {
+    //     keys = JSON.parse(localStorage.race_metrics);
+    // }
 
     _(metrics).each(function(metric) {
         $('<label><input type="checkbox" class="metric">'+metric.metric+'</label>')
@@ -66,12 +67,12 @@ function showMap() {
 
 function showGraphs() {
 
-    var keys = ['tws', 'performance', 'speed', 'targetSpeed', 'atwa', 'targetAngle'];
+    var keys = ['gws', 'gws_20', 'gwd', 'performance', 'speed', 'targetSpeed', 'atwa', 'targetAngle'];
     // if (localStorage.race_metrics) {
     //     keys = JSON.parse(localStorage.race_metrics);
     // }
 
-    _.each(graphs, function(graph) { 
+    _.each(graphs, function(graph) {
         graph.remove();
     });
     graphs = [];
@@ -85,8 +86,20 @@ function showGraphs() {
                     graph.render();
                     return graph;
                 }).value();
-}                
-  
+
+    var graph = new polarChart(window.race.data, 'gws', 'gwd');
+    $('#graphs').append(graph.el);
+    graph.render();
+
+
+    var graph = new polarChart(window.race.data, 'speed', 'twa');
+    graph.$el.addClass('big');
+    graph.config.axisLabelsSomething = true;
+    $('#graphs').append(graph.el);
+    graph.render();
+
+}
+
 //default race to example
 var race_id = window.location.search.substr(1) || '2014_nas_6';
 
@@ -98,7 +111,7 @@ var raceDataPromise = $.ajax('data/races/'+race_id+'.js', {
     dataType: 'json'
 }).promise();
 
-//load data  
+//load data
 function init() {
     Handlebars.registerHelper('fixed', function(value, precision) {
         if (!_.isNumber(value)) {
@@ -125,11 +138,11 @@ function init() {
             .change(function(a,b,c,d) {
                 var race = $(this).val();
                 window.location = window.location.href.split('?')[0] + '?' + race;
-            }); 
+            });
 
     });
     Promise.all([racesPromise, raceDataPromise]).then(function(results) {
-            
+
             var races = results[0];
             window.g_races = races;
 
@@ -146,12 +159,12 @@ function init() {
             race.stttt = start;
 
             var ret = buildOutData( race.data, start.valueOf() );
-            
+
             //debug wind data
             var windExtent = d3.extent(race.data, function(d) { return d['tws']; });
             var windMean = d3.mean(race.data, function(d) { return d['tws']; });
             var windMedian = d3.median(race.data, function(d) { return d['tws']; });
-            
+
             console.info("windSpeed: min, max, median, mean", windExtent, windMedian, windMean);
             console.info("windDir: ");
 
@@ -167,7 +180,7 @@ function init() {
 
             _.each(window.race.maneuvers, function(d) {
                 d.color = BOARD_COLORS[d.board];
-                
+
                 var c = ['board'];
 
                 if ( d.board.charAt(0) == 'D' )
@@ -184,7 +197,7 @@ function init() {
 
     app.on('select-tack', function(tack, label) {
         if ( !label) return;
-        
+
         var details = $('#graphs').empty();
 
         console.info(tack); window.tack = tack;
