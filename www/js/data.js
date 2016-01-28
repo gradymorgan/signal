@@ -1,12 +1,12 @@
 var NM_TO_FT = 6076.11549;
 
 
-function rad(deg) {
-    return deg * Math.PI / 180;
+function rad(degrees) {
+    return degrees * Math.PI / 180;
 }
 
-function deg(rad) {
-    return rad * 180 / Math.PI;
+function deg(radians) {
+    return radians*180/Math.PI;
 }
 
 function select2(data, metric) {
@@ -66,7 +66,7 @@ var awa_offset = 0;
 
 function refTws(dat, time) {
     var first10 = _.compact(_.pluck(dat.slice(0, 600), 'twd'));
-    
+
     var sinComp = 0, cosComp = 0;
     _.each(first10, function(angle) {
         sinComp += Math.sin(rad(angle));
@@ -153,12 +153,26 @@ function buildOutData(dat, offset, calibrate) {
             }
         });
     }
-    
+
 
     //calc missing pieces
     var last = new Date().getTime();
 
+    var limitedCallback = function(times, every) {
+        var i = 0,
+        every = every || 1;
 
+        return function(funct) {
+            i++;
+            if ( i > times*every ) return;
+
+            if (i % every) {
+                funct();
+            }
+        }
+    }
+
+    var lastHeel = 0;
     for ( var i=0; i < dat.length; i++ ) {
         var pt = dat[i];
         if ('t' in pt) {
@@ -166,15 +180,30 @@ function buildOutData(dat, offset, calibrate) {
             pt.t = pt.ot*1000 + offset;
         }
 
+        if ( 'heel' in pt ) {
+            lastHeel = pt.heel;
+        }
+
         // testing calibration approaches here
+        if ( 'awa' in pt ) {
+            var awa = pt.awa;
+            pt.awa = deg(Math.atan( Math.tan(rad(pt.awa)) / Math.cos(rad(lastHeel)) ));
+            if (awa > 90) {
+                pt.awa += 180;
+            }
+            if (awa < -90) {
+                pt.awa -= 180;
+            }
+        }
+
         if ( 'hdg' in pt) {
             pt.hdg = pt.hdg + 0;
         }
 
         if ( 'speed' in pt ) {
-            pt.speed = pt.speed * 1.05;
+            pt.speed = pt.speed * 1.00;
         }
-    
+
         for ( var x=0; x < xforms.length; x++ ) {
             var xform = xforms[x];
 
@@ -186,8 +215,8 @@ function buildOutData(dat, offset, calibrate) {
             }
         }
     }
-    
-    
+
+
 
     var maneuvers = homegrown.maneuvers.findManeuvers(dat);
     var tacks = homegrown.maneuvers.analyzeTacks(maneuvers, dat);
