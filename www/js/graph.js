@@ -1,4 +1,4 @@
-   
+
 var graphView = Backbone.View.extend({
     tagName: 'div',
     className: "graph",
@@ -12,6 +12,10 @@ var graphView = Backbone.View.extend({
         this.invertY = options2? options2.invertY: false;
         if ( options2 && options2.rangeY ) {
             this.rangeY = options2.rangeY;
+        }
+
+        if ( options2 && options2.circular ) {
+            this.circular = true;
         }
 
         //set up background color blocks
@@ -34,12 +38,10 @@ var graphView = Backbone.View.extend({
                 this.legs.push(leg);
             }
         }
-
-        // console.info(this.legs);
     },
     render: function() {
         var view = this;
-        
+
         var margin = {top: 5, right: 10, bottom: 5, left: 50};
 
         if ( this.showX ) {
@@ -63,6 +65,13 @@ var graphView = Backbone.View.extend({
                 d3.max( view.data, function(series) { return d3.max(series.data, function(d) { return d[1];}); } ),
             ]);
 
+        var circularTransform = function(d) { return d; };
+        var circularOffset = 0;
+        if ( this.circular ) {
+            var d = _.map(view.data[0].data, function(d) { return d[1]; });
+            circularOffset = Math.round(180 - homegrown.utilities.circularMean(d), 0);
+            circularTransform = function(d) { return ((d+circularOffset+360)%360) };
+        }
         if ( this.rangeY ) {
             y.domain(this.rangeY);
         }
@@ -83,12 +92,18 @@ var graphView = Backbone.View.extend({
         var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left")
-            .ticks(3);
+            .ticks(3)
+
+        if ( this.circular ) {
+            yAxis
+                .tickValues( _.map(d3.range(0, 360, 90), function(d) { return circularTransform(d); }) )
+                .tickFormat( function(d) { return ((d-circularOffset+360)%360) });
+        }
 
         var line = d3.svg.line()
             .interpolate("linear")
             .x(function(d) { return x(d[0]); })
-            .y(function(d) { return y(d[1]); });
+            .y(function(d) { return y(circularTransform(d[1])); });
 
 
         var svg = this.svg = d3.select(this.el).append("svg")
@@ -116,7 +131,7 @@ var graphView = Backbone.View.extend({
 
 
         //draw y grid and axis
-        svg.append("g")         
+        svg.append("g")
             .attr("class", "grid")
             .call( d3.svg.axis()
                 .scale(y)
@@ -135,7 +150,7 @@ var graphView = Backbone.View.extend({
             .attr("dy", ".71em")
             .style("text-anchor", "end");
 
-        
+
         //draw x axis
         if ( this.showX ) {
             svg.append("g")
@@ -144,7 +159,7 @@ var graphView = Backbone.View.extend({
                 .call(xAxis);
         }
 
-        svg.append("g")         
+        svg.append("g")
             .attr("class", "grid")
             // .attr("transform", "translate(0," + margin.top + ")")
             .call( d3.svg.axis()
@@ -155,12 +170,12 @@ var graphView = Backbone.View.extend({
                 .tickFormat("") );
 
         var data = _.map(view.data, function(series){ return {metric:series.metric, data:simplify( _.filter(series.data, function(d) { return d[0] >= x.domain()[0] && d[0] <= x.domain()[1]; }), width )}; });
-        
+
         var paths = svg.selectAll(".lines")
             .data(data)
           .enter().append("g")
             .attr("class", "lines");
-            
+
         paths.append("path")
             .attr("class", "line")
             .style("stroke", function(d) { return color(d.metric); })
@@ -168,11 +183,11 @@ var graphView = Backbone.View.extend({
 
         function draw() {
             svg.select("g.x.axis").call(xAxis);
-            
+
             //render a smaller amount of data
             var start = x.domain()[0];
             var end = x.domain()[1];
-            var data = _.map(view.data, function(series){ return {metric:series.metric, data:simplify( _.filter(series.data, function(d) { return d[0] >= start && d[0] <= end; }), width )}; });            
+            var data = _.map(view.data, function(series){ return {metric:series.metric, data:simplify( _.filter(series.data, function(d) { return d[0] >= start && d[0] <= end; }), width )}; });
 
             svg.selectAll('path.line')
                 .data(data)
@@ -207,7 +222,7 @@ var graphView = Backbone.View.extend({
                     .attr("stroke-width", 1)
                     .attr("stroke", "#666");
 
-                var text = _.map(view.data, function(series) { 
+                var text = _.map(view.data, function(series) {
                     var index = _.sortedIndex( series.data, [time], function(point) { return point[0]; } );
                     var point = series.data[index];
                     return series.metric + ': ' + point[1].toFixed(2);

@@ -1,5 +1,5 @@
 
-var variance = 0; 
+var variance = 0;
 
 var mapView = Backbone.View.extend({
     className: 'map',
@@ -27,7 +27,7 @@ var mapView = Backbone.View.extend({
 
 
         // calculate bounding rect for current track rotated
-        // and scale so it fits in current rect        
+        // and scale so it fits in current rect
         var refAngle = angle % 180;
         if (refAngle > 90 ) refAngle = 180 - refAngle;
         var t = refAngle * Math.PI / 180;
@@ -53,7 +53,7 @@ var mapView = Backbone.View.extend({
             var windHolder = annotationsLayer
                         .append("g")
                             .attr('transform', 'translate(500, 50)')
-                        
+
             windHolder.append('text')
                 .attr('dy', -15)
                 .style('text-anchor', 'middle')
@@ -90,15 +90,15 @@ var mapView = Backbone.View.extend({
                 .attr('dy', -20)
                 .attr('dx', -4)
                 .text('N')
-                
+
             // compass.append("circle")
             //     .attr('class', 'ew')
-            //     .attr("r", 4) 
+            //     .attr("r", 4)
     },
     renderTackLabels: function(world, view, projection, angle, width, height) {
         var tackCosts = world.append('g')
             .attr('class', 'layer tack-costs');
-          
+
         if ('tacks' in view.model) {
             var nodes = [];
             var links = [];
@@ -141,7 +141,7 @@ var mapView = Backbone.View.extend({
             // console.info('links', _.map())
 
             // var anchorNode = vis.selectAll("g.anchorNode").data(force2.nodes()).enter().append("svg:g").attr("class", "anchorNode");
-            
+
             // anchorNode.append("svg:circle").attr("r", 0).style("fill", "#FFF");
             //     anchorNode.append("svg:text").text(function(d, i) {
             //     return i % 2 == 0 ? "" : d.node.label
@@ -166,7 +166,7 @@ var mapView = Backbone.View.extend({
     },
     render: function() {
         var view = this;
-        
+
         var margin = this.margin;
         var width = this.$el.width() - margin.left - margin.right,
             height = this.$el.height() - margin.top - margin.bottom;
@@ -185,7 +185,7 @@ var mapView = Backbone.View.extend({
         var res = this.getProjection(track, angle, width, height);
         var projection = res[0];
         var trackPath = res[1];
-        
+
 
 
         // svg container
@@ -200,14 +200,14 @@ var mapView = Backbone.View.extend({
             .attr("height", height + margin.top + margin.bottom)
             .attr("width", width + margin.left + margin.right);
 
-        
+
         if ( this.annotations ) {
             this.renderAnnotations(svg, angle, this.model.data[0].tws);
         }
 
         // world
         var world = svg.append('g')
-            .attr('class', 'world')        
+            .attr('class', 'world')
             .attr('transform', function() { return "rotate(-"+angle+"," + (width / 2) + "," + (height / 2) + ")" });
 
 
@@ -260,19 +260,19 @@ var mapView = Backbone.View.extend({
                     .text(function(d) { return legend[d]; })
 
 
-        var polars = _(homegrown.streamingUtilities.createSummaryDataSegments(this.model.data, 'performance', 10000))
+        var polars = _(homegrown.utilities.createSummaryDataSegments(this.model.data, 'performance', 10000))
                         .filter(function(d) { return d.performance > 50 && d.performance < 151 })
                         .each(function(d) { d.color = perfScale(d.performance); })
                         .value();
-        
-        var polarTracks = homegrown.streamingUtilities.segmentData(this.model.data, polars);
+
+        var polarTracks = homegrown.utilities.segmentData(this.model.data, polars);
         _.each(polarTracks, function(seg) {
             seg.track = {type: "LineString", coordinates: _.compact( _.map(seg.data, function(d) { return [d.lon, d.lat] }) )};
         });
 
         var polarHighlights = world.append('g')
                 .attr('class', 'layer performance');
-        
+
         polarHighlights.selectAll("path.highlight")
               .data(polarTracks)
             .enter()
@@ -284,7 +284,7 @@ var mapView = Backbone.View.extend({
 
 
 
-        
+
         this.renderTackLabels(world, view, projection, angle, width, height);
 
 
@@ -293,7 +293,7 @@ var mapView = Backbone.View.extend({
             console.info('map clicked: ', projection.invert(pos), ' boat position: ', view.boatPos, ' time: ', view.boatTime);
         });
 
-        
+
         //create boat and put at start of race
         var start = projection(track.coordinates[0]);
         var hdg = view.model.data[0].hdg || 0;
@@ -312,13 +312,13 @@ var mapView = Backbone.View.extend({
             var point = view.model.data[index];
 
             //TODO: cleanup
-            if ( !point ) 
+            if ( !point )
                 return;
 
             var coord = projection([point.lon, point.lat]);
-            
+
             boat.attr('transform', 'translate('+(coord[0])+","+(coord[1]) +")scale(.06)rotate("+point.hdg+",-10,-10)");
-            
+
             view.boatPos = [point.lon, point.lat, point.hdg];
             view.boatTime = time;
 
@@ -335,7 +335,7 @@ var mapView = Backbone.View.extend({
     },
     renderLayerToggles: function() {
         $('<div class="layers">Show: <a class="button" href="#tack-costs">Tacks</a><a class="button" href="#performance">Performance</a><a class="button" href="#clear">Clear</a></div>').appendTo(this.el);
-        
+
         $('.layers .button', this.el).click(function() {
             $('.layer').hide();
             var layerName = this.getAttribute('href').slice(1);
@@ -375,7 +375,7 @@ var mapView = Backbone.View.extend({
             .range([0, width - 80])
             .domain(allTimeRange);
 
-        
+
         var xAxis = d3.svg.axis()
             .scale(x)
             .orient("bottom")
@@ -385,11 +385,11 @@ var mapView = Backbone.View.extend({
 
 
 
-        
+
         var classes = function(d) {
             var c = ['board'];
 
-            if ( d.board == 'PS' ) 
+            if ( d.board == 'PS' )
                 c.push('prestart');
 
             if ( d.board.charAt(0) == 'D' )
@@ -402,7 +402,7 @@ var mapView = Backbone.View.extend({
         }
 
 
-        
+
 
 
         var scrubSvg = d3.select(this.el).append("svg")
@@ -411,14 +411,14 @@ var mapView = Backbone.View.extend({
             .attr("class", "scrubber")
         .append("g")
             .attr("transform", "translate(40, 10)");
-       
-        
+
+
         scrubSvg.append("g")
             .attr("class", "boards")
             .selectAll("rect.board")
                 .data(maneuvers)
             .enter().append("rect")
-                .attr('class', classes) 
+                .attr('class', classes)
                 .attr("x", function(d) { return x(d.start); })
                 .attr("width", function(d) { return x(d.end) - x(d.start); })
                 .attr("y", 0)
@@ -434,7 +434,7 @@ var mapView = Backbone.View.extend({
             .attr('class', 'boat')
             .attr('transform', 'translate(0,12)');
 
-        
+
         // drag boat to scrub
         var drag = d3.behavior.drag()
             .on("drag", function dragmove(d) { app.trigger('scrub', new Date(x.invert(d3.event.x))); });
@@ -454,7 +454,7 @@ var mapView = Backbone.View.extend({
         // //listen to app events
         this.listenTo(app, 'scrub', function(time) {
             var boatPos = x(time);
-            
+
             boat.attr('transform', "translate("+boatPos+",12)rotate(16)");
         });
 

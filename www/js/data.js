@@ -61,9 +61,6 @@ function smooth(data, window) {
 }
 
 maneuvers = [];
-var aws_offset = 1
-var awa_offset = 0;
-
 function refTws(dat, time) {
     var first10 = _.compact(_.pluck(dat.slice(0, 600), 'twd'));
 
@@ -78,14 +75,15 @@ function refTws(dat, time) {
 
 var g = 0;
 
-function buildOutData(dat, offset, calibrate) {
-    calibrate = (calibrate === false) ? false : true; //default to true
+function buildOutData(dat, offset, awa_offset, aws_factor) {
+    awa_offset = awa_offset || 0;
+    aws_factor = aws_factor || 1;
 
     var polars = window.polars = new PolarTable(mayhem_all, mayhem_targets);
     var calcs = homegrown.calculations;
-    var delayedInputs = homegrown.streamingUtilities.delayedInputs;
-    var derivitive = homegrown.streamingUtilities.derivitive;
-    var average = homegrown.streamingUtilities.average;
+    var delayedInputs = homegrown.utilities.delayedInputs;
+    var derivitive = homegrown.utilities.derivitive;
+    var average = homegrown.utilities.average;
 
     //each of these methods is applied to each stream of
     //data, and the results incorporated into the data.
@@ -140,19 +138,9 @@ function buildOutData(dat, offset, calibrate) {
         derivitive('rot', 'hdg')
     ];
 
-    if ( calibrate ) {
-        xforms.unshift( function calibrate(args) {
-            if ( 'awa' in args ) {
-                args.awa -= awa_offset;
-                if (args.awa > 180) {
-                    args.awa = -1 * (360 - args.awa);
-                }
-            }
-            if ( 'aws' in args ) {
-                args.aws *= aws_offset;
-            }
-        });
-    }
+    // xforms.unshift( function calibrate(args) {
+
+    // });
 
 
     //calc missing pieces
@@ -186,6 +174,10 @@ function buildOutData(dat, offset, calibrate) {
 
         // testing calibration approaches here
         if ( 'awa' in pt ) {
+            pt.awa += awa_offset;
+            if (pt.awa > 180) {
+                pt.awa = -1 * (360 - pt.awa);
+            }
             var awa = pt.awa;
             pt.awa = deg(Math.atan( Math.tan(rad(pt.awa)) / Math.cos(rad(lastHeel)) ));
             if (awa > 90) {
@@ -194,6 +186,10 @@ function buildOutData(dat, offset, calibrate) {
             if (awa < -90) {
                 pt.awa -= 180;
             }
+        }
+
+        if ( 'aws' in pt ) {
+            pt.aws *= aws_factor;
         }
 
         if ( 'hdg' in pt) {

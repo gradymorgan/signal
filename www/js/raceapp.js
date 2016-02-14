@@ -19,7 +19,8 @@ var metrics = [{'metric':'gws_20', 'group':'wind'},
 var configs = {
     'wind': {showX: true},
     'percent': {rangeY: [80, 120]},
-    'angle': {invertY: true}
+    'angle': {invertY: true},
+    'twd': {circular: true}
 }
 
 var graphs = [];
@@ -158,7 +159,7 @@ function init() {
             var start = moment(race.date+' '+race.startTime, "YYYYMMDD HH:mm");
             race.stttt = start;
 
-            var ret = buildOutData( race.data, start.valueOf() );
+            var ret = buildOutData( race.data, start.valueOf(), race.calibration?race.calibration.awa:null, race.calibration?race.calibration.aws:null );
 
             //debug wind data
             var windExtent = d3.extent(race.data, function(d) { return d['tws']; });
