@@ -54,8 +54,6 @@ var polarChart = Backbone.View.extend({
 
         var domainExtent = data.getExtent(this.data, this.r);
 
-        console.info('extent', domainExtent, this.r);
-
         var r = d3.scale.linear()
             .domain(domainExtent)
             .range([0, radius]);
