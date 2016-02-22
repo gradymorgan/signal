@@ -152,6 +152,7 @@ $annotationColor: #fff;
 
     .wind line {
         stroke-width: 1.5;
+        stroke-linecap: round;
         stroke: $annotationColor;
     }
 
