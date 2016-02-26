@@ -1,4 +1,6 @@
-body { font-family: helvetica; }
+body {
+    font-family: helvetica;
+}
 
 $trackColor: #666;
 $waterColor: #62b7fc; /*#0087cd;*/
@@ -6,13 +8,53 @@ $waterColor: #62b7fc; /*#0087cd;*/
 $port: #e44c4c;
 $starboard: #5fe44c;
 
-#graphs {
-    margin-left: 580px;
-    width: 744px;
+header {
+    color: #fff;
+    background-color: #333;
+    margin-bottom: 1em;
+    padding: 0.5em 1em;
+
+    .title, .place, .links {
+        line-height: 26px;
+        vertical-align: baseline;
+    }
+
+    h1 {
+        margin: 0;
+        display: inline-block;
+        font-size: 24px;
+        font-weight: normal;
+    }
+    .date {
+        color: #ccc;
+        font-size: 80%;
+    }
+
+    .boilerplate {
+        font-size: 80%;
+    }
+
+    :link, :visited {
+        color: #fff;
+    }
+
+    .pure-menu-children :link, .pure-menu-children :visited {
+        color: #000;
+    }
+
+    .links .boilerplate {
+        margin-right: 0.25em;
+    }
+}
+
+#map_canvas {
+    height: 550px;
+    margin-right: 20px;
 }
 
 .graph {
     height: 200px;
+    margin-right: 20px;
 }
 
 .polarChart {

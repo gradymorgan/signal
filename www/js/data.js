@@ -56,11 +56,24 @@ function simplify(data, size) {
     return out;
 }
 
+function limitedCallback(times, every) {
+    var i = 0,
+    every = every || 1;
+
+    return function(funct) {
+        i++;
+        if ( i > times*every ) return;
+
+        if (i % every) {
+            funct();
+        }
+    }
+}
+
 function smooth(data, window) {
 
 }
 
-maneuvers = [];
 function refTws(dat, time) {
     var first10 = _.compact(_.pluck(dat.slice(0, 600), 'twd'));
 
@@ -82,12 +95,23 @@ function buildOutData(dat, offset, awa_offset, aws_factor) {
     var polars = window.polars = new PolarTable(mayhem_all, mayhem_targets);
     var calcs = homegrown.calculations;
     var delayedInputs = homegrown.utilities.delayedInputs;
-    var derivitive = homegrown.utilities.derivitive;
+    var inlineUpdate = homegrown.utilities.inlineUpdate;
+    var derivative = homegrown.utilities.derivative;
     var average = homegrown.utilities.average;
 
     //each of these methods is applied to each stream of
     //data, and the results incorporated into the data.
+    var awa = calcs.offest(awa_offset);
     var xforms = [
+        //adjust for calibration
+        // inlineUpdate(function(a) { return calcs.normalizeAngle(awa(a));}, 'awa'),
+        // inlineUpdate(calcs.multiplied(aws_factor), 'aws'),
+        // inlineUpdate(calcs.offest(0), 'hdg'),
+        // inlineUpdate(calcs.multiplied(1), 'speed'),
+        // inlineUpdate(calcs.offest(0), 'heel'),
+
+        homegrown.utilities.inlineAwaAdjustment(),
+
         delayedInputs(calcs.tws),
         delayedInputs(calcs.twa),
         delayedInputs(calcs.twd),
@@ -96,6 +120,7 @@ function buildOutData(dat, offset, awa_offset, aws_factor) {
         delayedInputs(calcs.set),
         delayedInputs(calcs.drift),
         delayedInputs(calcs.vmg),
+
         delayedInputs(function targetSpeed(tws, twa) {
             return polars.targetSpeed(tws, Math.abs(twa) <= 90);
         }),
@@ -115,13 +140,12 @@ function buildOutData(dat, offset, awa_offset, aws_factor) {
 
         //TODO: smooth and filter wind vars
         //TODO: Fourier transform
-        //TODO: rolling averages
 
         // average('tws_20', 'tws', 20),
-        average('gws_20', 'gws', 5),
+        average('gws:avg', 'gws', 5),
 
         // average('twd_20', 'twd', 20),
-        average('gwd_20', 'gwd', 5),
+        average('gwd:avg', 'gwd', 5),
 
         // average('set_20', 'set', 20),
 
@@ -134,33 +158,11 @@ function buildOutData(dat, offset, awa_offset, aws_factor) {
             }
         },
 
-        derivitive('acceleration', 'speed', (NM_TO_FT / 3600)),
-        derivitive('rot', 'hdg')
+        derivative('acceleration', 'speed', (NM_TO_FT / 3600)),
+        derivative('rot', 'hdg')
     ];
 
-    // xforms.unshift( function calibrate(args) {
-
-    // });
-
-
     //calc missing pieces
-    var last = new Date().getTime();
-
-    var limitedCallback = function(times, every) {
-        var i = 0,
-        every = every || 1;
-
-        return function(funct) {
-            i++;
-            if ( i > times*every ) return;
-
-            if (i % every) {
-                funct();
-            }
-        }
-    }
-
-    var lastHeel = 0;
     for ( var i=0; i < dat.length; i++ ) {
         var pt = dat[i];
         if ('t' in pt) {
@@ -168,51 +170,11 @@ function buildOutData(dat, offset, awa_offset, aws_factor) {
             pt.t = pt.ot*1000 + offset;
         }
 
-        if ( 'heel' in pt ) {
-            lastHeel = pt.heel;
-        }
-
         // testing calibration approaches here
-        if ( 'awa' in pt ) {
-            pt.awa += awa_offset;
-            if (pt.awa > 180) {
-                pt.awa = -1 * (360 - pt.awa);
-            }
-            var awa = pt.awa;
-            pt.awa = deg(Math.atan( Math.tan(rad(pt.awa)) / Math.cos(rad(lastHeel)) ));
-            if (awa > 90) {
-                pt.awa += 180;
-            }
-            if (awa < -90) {
-                pt.awa -= 180;
-            }
-        }
-
-        if ( 'aws' in pt ) {
-            pt.aws *= aws_factor;
-        }
-
-        if ( 'hdg' in pt) {
-            pt.hdg = pt.hdg + 0;
-        }
-
-        if ( 'speed' in pt ) {
-            pt.speed = pt.speed * 1.00;
-        }
-
         for ( var x=0; x < xforms.length; x++ ) {
-            var xform = xforms[x];
-
-            var result = xform(pt);
-            if (result) {
-                for (var k in result) {
-                    pt[k] = result[k];
-                }
-            }
+            xforms[x](pt);
         }
     }
-
-
 
     var maneuvers = homegrown.maneuvers.findManeuvers(dat);
     var tacks = homegrown.maneuvers.analyzeTacks(maneuvers, dat);
@@ -220,6 +182,24 @@ function buildOutData(dat, offset, awa_offset, aws_factor) {
     return {
         maneuvers: maneuvers,
         tacks: tacks
+    };
+}
+
+function raceStats(race) {
+    var courseDistance = homegrown.calculations.courseDistance( race.course, race.marks );
+    var speeds = select2(race.data, 'speed');
+    var maxSpeed = _.max( speeds, function(d) { return d[1]; })[1];
+    var raceDuration = moment.duration(_.last(speeds)[0] - speeds[0][0] - 10 * 60000);
+    var formatted = moment.utc(raceDuration.asMilliseconds()).format("HH:mm:ss");
+
+    var avgVmg = courseDistance / raceDuration.asHours();
+
+    console.info('stats', courseDistance, maxSpeed, formatted, avgVmg);
+    return {
+        courseDistance: courseDistance,
+        maxSpeed: maxSpeed,
+        raceDuration: formatted,
+        avgVmg: avgVmg
     };
 }
 
